@@ -7,6 +7,11 @@
  */
 (function($) {
 	var methods = {
+		/**
+		 *initialization
+		 * @param {Object} options
+		 * @returns {jQuery}
+		 */
 		init: function(options) {
 			var settings = $.extend({
 				insertInForm: 1,
@@ -20,6 +25,10 @@
 
 			return this;
 		},
+		/**
+		 * initialization first states
+		 * @param {Object} settings
+		 */
 		init_state: function(settings) {
 			this.each(function() {
 				var $this = $(this);
@@ -87,6 +96,11 @@
 
 			});
 		},
+		/**
+		 * call on form submit
+		 * @param {Object} settings
+		 * @returns {Function}
+		 */
 		onSubmit: function(settings) {
 			return function() {
 				var $this = $(this);
@@ -109,9 +123,17 @@
 				return true;
 			};
 		},
+		/**
+		 * check changes
+		 * @returns {Boolean}
+		 */
 		is_changed: function() {
 			return (this.state_form('get_changes').length ? true : false);
 		},
+		/**
+		 * returns changes array
+		 * @returns {Array}
+		 */
 		get_changes: function() {
 			var changes = [];
 			$('[data-state-is_changed]').each(function() {
@@ -134,6 +156,10 @@
 
 			return changes;
 		},
+		/**
+		 * call on event change control
+		 * @returns {Function}
+		 */
 		change_state: function() {
 			return function() {
 				var $this = $(this);
