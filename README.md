@@ -11,7 +11,6 @@ simple:
 
 ```javascript
 $(document).ready(function() {
-	var name = $('form').attr('name');
 	$('[data-id="rbc_main_form"]').state_form();
 });
 ```
