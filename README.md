@@ -28,7 +28,9 @@ $(document).ready(function() {
 		//call if form has changes
 		ifChanged: function() { //is default
 			return true;
-		}
+		},
+		//field for excluded
+		exclude: ['field1', field2]
 	});
 });
 ```

@@ -16,6 +16,7 @@
 			var settings = $.extend({
 				insertInForm: 1,
 				inputName: 'changed_state',
+				exclude: [],
 				ifChanged: function() {
 					return true;
 				}
@@ -33,6 +34,9 @@
 			this.each(function() {
 				var $this = $(this);
 				$this.submit($this.state_form('onSubmit', settings));
+				$this.data({
+					settings: settings
+				});
 
 				$('input,select,textarea', $this).not('[type="button"],[type="submit"]').each(function() {
 					var $$this = $(this);
@@ -136,20 +140,29 @@
 		 */
 		get_changes: function() {
 			var changes = [];
-			$('[data-state-is_changed]').each(function() {
-				changes.push($(this).data().state);
+			var opt = this.data().settings;
+			$('[data-state-is_changed]', this).each(function() {
+				var d = $(this).data();
+				if($.inArray(d.element_name, opt.exclude) === -1)
+				{
+					changes.push(d.state);
+				}
 			});
 
 			//отдельно обрабатываем скрытые поля
 			//так как change у них не произойдёт
 			$('input[type="hidden"]', this).each(function() {
 				var $this = $(this);
-				if(typeof $this.data() === 'object' && $this.data().hasOwnProperty('state'))
+				var d = $this.data();
+				if(typeof d === 'object' && d.hasOwnProperty('state'))
 				{
-					var data = $this.data().state;
-					if(data.first_val != $this.val())
+					var data = d.state;
+					if($.inArray(data.element_name, opt.exclude) === -1)
 					{
-						changes.push($(this).data().state);
+						if(data.first_val != $this.val())
+						{
+							changes.push(data);
+						}
 					}
 				}
 			});
