@@ -40,12 +40,14 @@
 
 				$('input,select,textarea', $this).not('[type="button"],[type="submit"]').each(function() {
 					var $$this = $(this);
-
+					
 					var tmp = {
 						state: {
 							element_name: null,
 							first_val: null,
-							curent_val: null
+							raw_text_first: null,
+							curent_val: null,
+							raw_text_last: null
 						}
 					};
 
@@ -75,8 +77,11 @@
 
 							break;
 						case 'TEXTAREA':
+							tmp.state.first_val = $$this.val();
+							break;
 						case 'SELECT':
 							tmp.state.first_val = $$this.val();
+							tmp.state.raw_text_first = $$this.text();
 							break;
 					}
 					$$this.change($$this.state_form('change_state'));
@@ -193,6 +198,10 @@
 				else
 				{
 					data.state.curent_val = val;
+					if(this.tagName == 'SELECT')
+					{
+						data.state.raw_text_last = $this.find('option:selected').text();
+					}
 				}
 
 				if(val != data.state.first_val)
