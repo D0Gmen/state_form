@@ -81,7 +81,7 @@
 							break;
 						case 'SELECT':
 							tmp.state.first_val = $$this.val();
-							tmp.state.raw_text_first = $$this.text();
+							tmp.state.raw_text_first = $$this.find('option:selected').text();
 							break;
 					}
 					$$this.change($$this.state_form('change_state'));
