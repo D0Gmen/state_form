@@ -1,9 +1,5 @@
-/*!
- * jQuery state_form v0.0.1
- * https://github.com/Slavenin/state_form
+/**контроль за формой
  *
- * Copyright 2013 Barulin Maxim
- * Released under the GPU license
  */
 (function($) {
 	var methods = {
@@ -40,14 +36,15 @@
 
 				$('input,select,textarea', $this).not('[type="button"],[type="submit"]').each(function() {
 					var $$this = $(this);
-					
+
 					var tmp = {
 						state: {
 							element_name: null,
 							first_val: null,
 							raw_text_first: null,
 							curent_val: null,
-							raw_text_last: null
+							raw_text_last: null,
+							selected: false
 						}
 					};
 
@@ -56,9 +53,23 @@
 						case 'INPUT':
 							if(this.type == 'checkbox' || this.type == 'radio')
 							{
-								if($$this.is(':checked') && void 0 !== $$this.attr('value'))
+								if(void 0 !== $$this.attr('value'))
 								{
-									tmp.state.first_val = $$this.val();
+									if(this.type != 'radio')
+									{
+										if($$this.is(':checked'))
+										{
+											tmp.state.first_val = $$this.val();
+										}
+									}
+									else
+									{
+										if($$this.is(':checked'))
+										{
+											tmp.state.selected = true;
+										}
+										tmp.state.first_val = $$this.val();
+									}
 								}
 								else
 								{
@@ -86,11 +97,11 @@
 					}
 					$$this.change($$this.state_form('change_state'));
 
-					if($$this.prop('name'))
+					if(void 0 !== $$this.attr('name'))
 					{
 						tmp.state.element_name = this.name;
 					}
-					else if($$this.prop('id'))
+					else if(void 0 !== $$this.attr('id'))
 					{
 						tmp.state.element_name = this.id;
 					}
@@ -207,6 +218,18 @@
 				if(val != data.state.first_val)
 				{
 					$this.attr('data-state-is_changed', '1');
+				}
+				else if(this.type == 'radio')
+				{
+					if($this.is(':checked') && !data.state.selected)
+					{
+						$this.attr('data-state-is_changed', '1');
+					}
+					else
+					{
+						var context = $this.parents('form');
+						$('[name="' + this.name + '"]', context).removeAttr('data-state-is_changed');
+					}
 				}
 				else
 				{

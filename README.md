@@ -30,7 +30,7 @@ $(document).ready(function() {
 			return true;
 		},
 		//field for excluded
-		exclude: ['field1', field2]
+		exclude: ['field1', 'field2']
 	});
 });
 ```
