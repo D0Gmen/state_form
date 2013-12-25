@@ -1,6 +1,6 @@
 {
   "name": "state_form",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "title":  "State form",
   "description": "watch for form element state",
   "author": {
