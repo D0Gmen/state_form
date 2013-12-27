@@ -476,7 +476,7 @@
 										{
 											$this.attr('checked', 'cheked').change();
 										}
-										
+
 										$this.data().state.first_val = old.curent_val;
 										$this.data().state.curent_val = old.curent_val;
 									}
@@ -509,7 +509,7 @@
 		},
 		/**
 		 * returns history by key, context
-		 * or all history if key = state_form_all
+		 * or all history if key == state_form_all
 		 * @param {String} key
 		 * @returns {Array|Object}
 		 */
@@ -603,7 +603,6 @@
 		is_jQuery : function(obj) {
 			return obj!=null && obj.constructor === jQuery;
 		}
-
 	};
 
 	$.fn.state_form = function(method) {
