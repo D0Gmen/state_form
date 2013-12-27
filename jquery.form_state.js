@@ -10,12 +10,15 @@
 		 */
 		init: function(options) {
 			var settings = $.extend({
-				insertInForm: 1,
-				inputName: 'changed_state',
+				insert_in_form: 1,
+				input_name: 'changed_state',
 				exclude: [],
-				ifChanged: function() {
+				debug_mode: 0,
+				if_changed: function() {
 					return true;
-				}
+				},
+				save_state_history: 1,
+				state_history_length: 10
 			}, options);
 
 			this.state_form('init_state', settings);
@@ -29,12 +32,12 @@
 		init_state: function(settings) {
 			this.each(function() {
 				var $this = $(this);
-				$this.submit($this.state_form('onSubmit', settings));
+				$this.submit($this.state_form('on_submit', settings));
 				$this.data({
 					settings: settings
 				});
 
-				$('input,select,textarea', $this).not('[type="button"],[type="submit"]').each(function() {
+				$(':input', $this).not('[type="button"],[type="submit"]').each(function() {
 					var $$this = $(this);
 
 					var tmp = {
@@ -48,87 +51,98 @@
 						}
 					};
 
-					switch(this.tagName)
-					{
-						case 'INPUT':
-							if(this.type == 'checkbox' || this.type == 'radio')
-							{
-								if(void 0 !== $$this.attr('value'))
-								{
-									if(this.type != 'radio')
-									{
-										if($$this.is(':checked'))
-										{
-											tmp.state.first_val = $$this.val();
-										}
-									}
-									else
-									{
-										if($$this.is(':checked'))
-										{
-											tmp.state.selected = true;
-										}
-										tmp.state.first_val = $$this.val();
-									}
-								}
-								else
-								{
-									tmp.state.first_val = $$this.is(':checked');
-								}
-							}
-							else if (void 0 === $$this.attr('value'))
-							{
-								window.console.debug('Внимание: у элемента нет атрибута value! (WARNING: element has no attr value!)');
-								window.console.debug(this);
-							}
-							else
-							{
-								tmp.state.first_val = $$this.val();
-							}
-
-							break;
-						case 'TEXTAREA':
-							tmp.state.first_val = $$this.val();
-							break;
-						case 'SELECT':
-							tmp.state.first_val = $$this.val();
-							tmp.state.raw_text_first = $$this.find('option:selected').text();
-							break;
-					}
+					$$this.state_form('set_value', tmp, settings);
+					$$this.state_form('set_name', tmp, settings);
 					$$this.change($$this.state_form('change_state'));
-
-					if(void 0 !== $$this.attr('name'))
-					{
-						tmp.state.element_name = this.name;
-					}
-					else if(void 0 !== $$this.attr('id'))
-					{
-						tmp.state.element_name = this.id;
-					}
-					else
-					{
-						window.console.debug('Внимание: у элемента нет имени! (WARNING: element has no name!)');
-						window.console.debug(this);
-					}
-
 					$$this.data(tmp);
 				});
 
 			});
+		},
+		set_name: function(tmp, settings) {
+			if(void 0 !== this.attr('name'))
+			{
+				tmp.state.element_name = this.attr('name');
+			}
+			else if(void 0 !== this.attr('id'))
+			{
+				tmp.state.element_name = this.attr('id');
+			}
+			else
+			{
+				if(settings.debug_mode)
+				{
+					window.console.warn('Внимание: у элемента нет имени! (WARNING: element has no name!)');
+					window.console.debug(this);
+				}
+			}
+		},
+		set_value: function(tmp, settings) {
+			var _this = this[0];
+			switch(_this.tagName)
+			{
+				case 'INPUT':
+					if(_this.type == 'checkbox' || _this.type == 'radio')
+					{
+						if(void 0 !== this.attr('value'))
+						{
+							if(_this.type != 'radio')
+							{
+								if(this.is(':checked'))
+								{
+									tmp.state.first_val = this.val();
+								}
+							}
+							else
+							{
+								if(this.is(':checked'))
+								{
+									tmp.state.selected = true;
+								}
+								tmp.state.first_val = this.val();
+							}
+						}
+						else
+						{
+							tmp.state.first_val = this.is(':checked');
+						}
+					}
+					else if (void 0 === this.attr('value'))
+					{
+						if(settings.debug_mode)
+						{
+							window.console.warn('Внимание: у элемента нет атрибута value! (WARNING: element has no attr value!)');
+							window.console.debug(_this);
+						}
+					}
+					else
+					{
+						tmp.state.first_val = this.val();
+					}
+
+					break;
+				case 'TEXTAREA':
+					tmp.state.first_val = this.val();
+					break;
+				case 'SELECT':
+					tmp.state.first_val = this.val();
+					tmp.state.raw_text_first = this.find('option:selected').text();
+					break;
+			}
 		},
 		/**
 		 * call on form submit
 		 * @param {Object} settings
 		 * @returns {Function}
 		 */
-		onSubmit: function(settings) {
+		on_submit: function(settings) {
 			return function() {
 				var $this = $(this);
 				if($this.state_form('is_changed'))
 				{
-					if(settings.insertInForm)
+					if(settings.insert_in_form)
 					{
-						var input = $('<input type="hidden" name="' + settings.inputName + '">');
+						var input = $('<input type="hidden" name="' + settings.input_name + '">');
 						$this.append(input);
 						input.val(JSON.stringify($this.state_form('get_changes')));
 					}
@@ -137,7 +151,7 @@
 						$('input[name="changed_state"]', $this).remove();
 					}
 
-					return settings.ifChanged.call($this);
+					return settings.if_changed.call($this);
 				}
 
 				return true;
@@ -158,16 +172,17 @@
 			var changes = [];
 			var opt = this.data().settings;
 			$('[data-state-is_changed]', this).each(function() {
-				var d = $(this).data();
+				var d = $(this).data().state;
 				if($.inArray(d.element_name, opt.exclude) === -1)
 				{
-					changes.push(d.state);
+					changes.push(d);
 				}
 			});
 
 			//отдельно обрабатываем скрытые поля
 			//так как change у них не произойдёт
-			$('input[type="hidden"]', this).each(function() {
+			//и исключаем те, у которых он вызван руками
+			$('input[type="hidden"]', this).not('[data-state-is_changed]').each(function() {
 				var $this = $(this);
 				var d = $this.data();
 				if(typeof d === 'object' && d.hasOwnProperty('state'))
@@ -236,7 +251,298 @@
 					$this.removeAttr('data-state-is_changed');
 				}
 			};
+		},
+		save_state: function(name) {
+
+			var field = false;
+			//если функция вызвана в контексте поля формы
+			var settings = null;
+
+			if(this[0].tagName != 'FORM')
+			{
+				field = this;
+				settings = $(this[0].form).data().settings;
+			}
+			else
+			{
+				settings = this.data().settings;
+			}
+
+			if(settings.save_state_history)
+			{
+				this.state_form('create_snapshot', name);
+			}
+
+			if(field )
+			{
+				var data = field.data();
+				if(typeof data === 'object' && data.hasOwnProperty('state'))
+				{
+					data.state.first_val = field.val();
+					field.state_form('set_value', data, settings);
+					field.removeAttr('data-state-is_changed');
+				}
+			}
+			else
+			{
+				$(':input', this).not('[type="button"],[type="submit"]').each(function() {
+					var $$this = $(this);
+					var data = $$this.data();
+					if(typeof data === 'object' && data.hasOwnProperty('state'))
+					{
+						data.state.first_val = $$this.val();
+						$$this.state_form('set_value', data, settings);
+						$$this.removeAttr('data-state-is_changed');
+					}
+				});
+
+			}
+
+			return this;
+		},
+		create_snapshot: function(key) {
+			var curent_state = {};
+			var hist = [];
+
+			if(typeof window.localStorage.form_state_snapshot !== 'undefined')
+			{
+				hist = JSON.parse(window.localStorage.form_state_snapshot);
+			}
+
+			key = key || hist.length;
+
+			var fields = [];
+			var context = null;
+			var max_length = 0;
+			if(this[0].tagName == 'FORM')
+			{
+				context = $(':input', this).not('[type="button"],[type="submit"]')
+				max_length = this.data().settings.state_history_length;
+			}
+			else
+			{
+				context = this;
+				max_length = $(this[0].form).data().settings.state_history_length;
+			}
+			$(context).not('[type="button"],[type="submit"]').each(function() {
+				var data = $(this).data();
+				if(typeof data === 'object' && data.hasOwnProperty('state'))
+				{
+					fields.push(data.state);
+				}
+			});
+
+			curent_state[key] = fields;
+			var ex = false;
+			for(var i in hist)
+			{
+				if(hist[i].hasOwnProperty(key))
+				{
+					hist[i] = curent_state;
+					ex = true;
+					break;
+				}
+			}
+			if(!ex)
+			{
+				if(hist.length >= max_length)
+				{
+					hist.shift();
+				}
+				hist.push(curent_state);
+			}
+
+			window.localStorage.form_state_snapshot = JSON.stringify(hist);
+			if(this[0].tagName == 'FORM')
+			{
+				window.localStorage.form_state_last_form_snapshot = JSON.stringify(curent_state);
+			}
+		},
+		restore_state: function(key) {
+			var hist = null;
+
+			if(key)
+			{
+				hist = this.state_form('get_history', key);
+			}
+			else
+			{
+				if(this[0].tagName == 'FORM')
+				{
+					if(typeof window.localStorage.form_state_snapshot !== 'undefined')
+					{
+						hist = JSON.parse(window.localStorage.form_state_last_form_snapshot);
+					}
+				}
+				else
+				{
+					hist = this.state_form('find_state');
+				}
+			}
+
+			if(hist)
+			{
+				var settings = null;
+				if(this[0].tagName != 'FORM')
+				{
+					settings = $(this[0].form).data().settings;
+				}
+				else
+				{
+					settings = this.data().settings;
+				}
+
+				for(var k in hist)
+				{
+					for(var i in hist[k])
+					{
+						var old = hist[k][i];
+						var el_name = old.element_name;
+						var el = null;
+						if($('[name="' + el_name + '"]').size())
+						{
+							el = $('[name="' + el_name + '"]');
+						}
+						else if($('#' + el_name).size())
+						{
+							el = $('#' + el_name);
+						}
+						else
+						{
+							if(settings.debug_mode)
+							{
+								window.console.warn('Внимание: поле не найдено в форме! (WARNING: field not found in the form!)');
+								window.console.debug(this);
+							}
+						}
+
+						var data  = el.data();
+						data.curent_val = old.curent_val;
+						data.first_val = old.first_val;
+						data.raw_text_first = old.raw_text_first;
+						data.raw_text_last = old.raw_text_last;
+						data.selected = old.selected;
+
+						if(el[0].type === 'radio')
+						{
+							el.each(function() {
+								var $this = $(this);
+								var val = $this.val();
+
+								if(void 0 !== this.value)
+								{
+									if(old.curent_val !== null && val == old.curent_val)
+									{
+										$this.attr('checked', 'cheked').change();
+									}
+								}
+
+							});
+						}
+						else if(el[0].type === 'checkbox')
+						{
+							if(old.curent_val === false)
+							{
+								el.removeAttr('checked').change();
+							}
+							else
+							{
+								el.attr('checked', 'cheked').change();
+							}
+						}
+						else
+						{
+							if(old.curent_val !== null)
+							{
+								el.val(old.curent_val).change();
+							}
+						}
+					}
+				}
+			}
+		},
+		get_history: function(key) {
+			key = key || false;
+			var hist = [];
+			var state = {};
+
+			if(typeof window.localStorage.form_state_snapshot !== 'undefined')
+			{
+				hist = JSON.parse(window.localStorage.form_state_snapshot);
+			}
+
+			if(key)
+			{
+				if(key == 'state_form_all')
+				{
+					state = hist;
+				}
+				else
+				{
+					for(var i in hist)
+					{
+						if(hist[i].hasOwnProperty(key))
+						{
+							state = hist[i];
+							break;
+						}
+					}
+				}
+			}
+			else
+			{
+				state = hist.pop();
+			}
+
+			return state;
+		},
+		find_state: function() {
+			var names = [];
+			var state = {};
+			this.not('[type="button"],[type="submit"]').each(function() {
+				if(void 0 !== this.name)
+				{
+					names.push(this.name);
+				}
+				else if(void 0 !== this.id)
+				{
+					names.push(this.id);
+				}
+
+			});
+
+			names = names.join(',');
+			var hist = this.state_form('get_history', 'state_form_all');
+			hist.reverse();
+
+			top:
+			for(var i in hist)
+			{
+				for(var j in hist[i])
+				{
+					var hist_names = [];
+					for(var k in hist[i][j])
+					{
+						hist_names.push(hist[i][j][k]['element_name']);
+					}
+
+					hist_names = hist_names.join(',');
+
+					if(hist_names == names)
+					{
+						state = hist[i];
+						break top;
+					}
+				}
+			}
+
+			return state;
+
+		},
+		is_jQuery : function(obj) {
+			return obj!=null && obj.constructor === jQuery;
 		}
+
 	};
 
 	$.fn.state_form = function(method) {
