@@ -272,17 +272,12 @@
 		save_state: function(key) {
 
 			var field = false;
-			//если функция вызвана в контексте поля формы
-			var settings = null;
+			var settings = this.state_form('get_settings');
 
+			//если функция вызвана в контексте поля формы
 			if(this[0].tagName != 'FORM')
 			{
 				field = this;
-				settings = $(this[0].form).data().settings;
-			}
-			else
-			{
-				settings = this.data().settings;
 			}
 
 			if(settings.save_state_history)
@@ -318,6 +313,24 @@
 			return this;
 		},
 		/**
+		 * return init form settings
+		 * @returns {Object}
+		 */
+		get_settings: function() {
+			var settings = {};
+
+			if(this[0].tagName != 'FORM')
+			{
+				settings = $(this[0].form).data().settings;
+			}
+			else
+			{
+				settings = this.data().settings;
+			}
+
+			return settings;
+		},
+		/**
 		 * create snapshot for elements
 		 * @param {string} key
 		 * @returns {void}
@@ -336,15 +349,17 @@
 			var fields = [];
 			var context = null;
 			var max_length = 0;
+			var settings = this.state_form('get_settings');
+
 			if(this[0].tagName == 'FORM')
 			{
 				context = $(':input', this).not('[type="button"],[type="submit"]');
-				max_length = this.data().settings.state_history_length;
+				max_length = settings.state_history_length;
 			}
 			else
 			{
 				context = this;
-				max_length = $(this[0].form).data().settings.state_history_length;
+				max_length = settings.state_history_length;
 			}
 			$(context).not('[type="button"],[type="submit"]').each(function() {
 				var data = $(this).data();
@@ -409,15 +424,7 @@
 
 			if(hist)
 			{
-				var settings = null;
-				if(this[0].tagName != 'FORM')
-				{
-					settings = $(this[0].form).data().settings;
-				}
-				else
-				{
-					settings = this.data().settings;
-				}
+				var settings = this.state_form('get_settings');
 
 				for(var k in hist)
 				{
@@ -443,13 +450,18 @@
 							}
 						}
 
-						var data  = el.data();
+						var data  = el.data().state;
 						data.curent_val = old.curent_val;
-						data.first_val = old.first_val;
+						//@todo не понятно какое поведение правильное
+						//с одной стороны при восстановлении состояния
+						//должны восстанавливаться и изменения с другой
+						//можем иметь дело с формой после обновления страницы,
+						//тогда изменений быть не должно
+						data.first_val = old.curent_val;
+						//data.first_val = old.first_val;
 						data.raw_text_first = old.raw_text_first;
 						data.raw_text_last = old.raw_text_last;
 						data.selected = old.selected;
-
 						if(el[0].type === 'radio')
 						{
 							el.each(function() {
@@ -460,7 +472,13 @@
 								{
 									if(old.curent_val !== null && val == old.curent_val)
 									{
-										$this.attr('checked', 'cheked').change();
+										if(old.selected)
+										{
+											$this.attr('checked', 'cheked').change();
+										}
+										
+										$this.data().state.first_val = old.curent_val;
+										$this.data().state.curent_val = old.curent_val;
 									}
 								}
 
