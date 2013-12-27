@@ -316,7 +316,7 @@
 			var max_length = 0;
 			if(this[0].tagName == 'FORM')
 			{
-				context = $(':input', this).not('[type="button"],[type="submit"]')
+				context = $(':input', this).not('[type="button"],[type="submit"]');
 				max_length = this.data().settings.state_history_length;
 			}
 			else
