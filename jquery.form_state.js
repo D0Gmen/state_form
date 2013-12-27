@@ -59,6 +59,12 @@
 
 			});
 		},
+		/**
+		 * set name for field
+		 * @param {Object} tmp
+		 * @param {Object} settings
+		 * @returns {void}
+		 */
 		set_name: function(tmp, settings) {
 			if(void 0 !== this.attr('name'))
 			{
@@ -77,6 +83,12 @@
 				}
 			}
 		},
+		/**
+		 * set value for field
+		 * @param {Object} tmp
+		 * @param {Object} settings
+		 * @returns {void}
+		 */
 		set_value: function(tmp, settings) {
 			var _this = this[0];
 			switch(_this.tagName)
@@ -252,7 +264,12 @@
 				}
 			};
 		},
-		save_state: function(name) {
+		/**
+		 * save state for field(s) or form
+		 * @param {String} key key for state
+		 * @returns {jQuery}
+		 */
+		save_state: function(key) {
 
 			var field = false;
 			//если функция вызвана в контексте поля формы
@@ -270,7 +287,7 @@
 
 			if(settings.save_state_history)
 			{
-				this.state_form('create_snapshot', name);
+				this.state_form('create_snapshot', key);
 			}
 
 			if(field )
@@ -300,6 +317,11 @@
 
 			return this;
 		},
+		/**
+		 * create snapshot for elements
+		 * @param {string} key
+		 * @returns {void}
+		 */
 		create_snapshot: function(key) {
 			var curent_state = {};
 			var hist = [];
@@ -358,6 +380,11 @@
 				window.localStorage.form_state_last_form_snapshot = JSON.stringify(curent_state);
 			}
 		},
+		/**
+		 * restore form state by key or last saved state
+		 * @param {String} key key for restore
+		 * @returns {jQuery}
+		 */
 		restore_state: function(key) {
 			var hist = null;
 
@@ -460,7 +487,14 @@
 					}
 				}
 			}
+			return this;
 		},
+		/**
+		 * returns history by key, context
+		 * or all history if key = state_form_all
+		 * @param {String} key
+		 * @returns {Array|Object}
+		 */
 		get_history: function(key) {
 			key = key || false;
 			var hist = [];
@@ -496,6 +530,10 @@
 
 			return state;
 		},
+		/**
+		 * find last state by context
+		 * @returns {Object}
+		 */
 		find_state: function() {
 			var names = [];
 			var state = {};
@@ -539,6 +577,11 @@
 			return state;
 
 		},
+		/**
+		 * return true if object is jQuery
+		 * @param {Object} obj
+		 * @returns {Boolean}
+		 */
 		is_jQuery : function(obj) {
 			return obj!=null && obj.constructor === jQuery;
 		}
