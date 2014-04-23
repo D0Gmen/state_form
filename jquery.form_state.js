@@ -18,7 +18,8 @@
 					return true;
 				},
 				save_state_history: 1,
-				state_history_length: 10
+				state_history_length: 10,
+				controlling_attr: 'name'
 			}, options);
 
 			this.state_form('init_state', settings);
@@ -66,9 +67,9 @@
 		 * @returns {void}
 		 */
 		set_name: function(tmp, settings) {
-			if(void 0 !== this.attr('name'))
+			if(void 0 !== this.attr(settings.controlling_attr))
 			{
-				tmp.state.element_name = this.attr('name');
+				tmp.state.element_name = this.attr(settings.controlling_attr);
 			}
 			else if(void 0 !== this.attr('id'))
 			{
@@ -183,32 +184,35 @@
 		get_changes: function() {
 			var changes = [];
 			var opt = this.data().settings;
-			$('[data-state-is_changed]', this).each(function() {
-				var d = $(this).data().state;
-				if($.inArray(d.element_name, opt.exclude) === -1)
-				{
-					changes.push(d);
-				}
-			});
-
-			//отдельно обрабатываем скрытые поля
-			//так как change у них не произойдёт
-			//и исключаем те, у которых он вызван руками
-			$('input[type="hidden"]', this).not('[data-state-is_changed]').each(function() {
-				var $this = $(this);
-				var d = $this.data();
-				if(typeof d === 'object' && d.hasOwnProperty('state'))
-				{
-					var data = d.state;
-					if($.inArray(data.element_name, opt.exclude) === -1)
+			if(opt)
+			{
+				$('[data-state-is_changed]', this).each(function() {
+					var d = $(this).data().state;
+					if($.inArray(d.element_name, opt.exclude) === -1)
 					{
-						if(data.first_val != $this.val())
+						changes.push(d);
+					}
+				});
+
+				//отдельно обрабатываем скрытые поля
+				//так как change у них не произойдёт
+				//и исключаем те, у которых он вызван руками
+				$('input[type="hidden"]', this).not('[data-state-is_changed]').each(function() {
+					var $this = $(this);
+					var d = $this.data();
+					if(typeof d === 'object' && d.hasOwnProperty('state'))
+					{
+						var data = d.state;
+						if($.inArray(data.element_name, opt.exclude) === -1)
 						{
-							changes.push(data);
+							if(data.first_val != $this.val())
+							{
+								changes.push(data);
+							}
 						}
 					}
-				}
-			});
+				});
+			}
 
 			return changes;
 		},
@@ -254,8 +258,10 @@
 					}
 					else
 					{
+						var $this = $(this);
+						var settings = $this.parents('form').state_form('get_settings');
 						var context = $this.parents('form');
-						$('[name="' + this.name + '"]', context).removeAttr('data-state-is_changed');
+						$('[' + settings.controlling_attr + '="' + $this.attr(settings.controlling_attr) + '"]', context).removeAttr('data-state-is_changed');
 					}
 				}
 				else
@@ -433,9 +439,9 @@
 						var old = hist[k][i];
 						var el_name = old.element_name;
 						var el = null;
-						if($('[name="' + el_name + '"]').size())
+						if($('[' + settings.controlling_attr + '="' + el_name + '"]').size())
 						{
-							el = $('[name="' + el_name + '"]');
+							el = $('[' + settings.controlling_attr + '="' + el_name + '"]');
 						}
 						else if($('#' + el_name).size())
 						{
@@ -555,10 +561,12 @@
 		find_state: function() {
 			var names = [];
 			var state = {};
+			var settings = this.parents('form').state_form('get_settings');
 			this.not('[type="button"],[type="submit"]').each(function() {
-				if(void 0 !== this.name)
+				var $this = $(this);
+				if(void 0 !== $this.attr(settings.controlling_attr))
 				{
-					names.push(this.name);
+					names.push(this.attr(settings.controlling_attr));
 				}
 				else if(void 0 !== this.id)
 				{

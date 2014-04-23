@@ -34,7 +34,9 @@ $(document).ready(function() {
 		//save hisory form states in local storage
 		save_state_history: 1,
 		//max count history snapshots
-		state_history_length: 10
+		state_history_length: 10,
+		//name attribute with a unique value for the control
+		controlling_attr: 'name'//is default
 	});
 });
 ```
