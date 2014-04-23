@@ -1,8 +1,8 @@
 {
   "name": "state_form",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "title":  "State form",
-  "description": "watch, save and restore form element state",
+  "description": "watch for form element state",
   "author": {
     "name": "Barulin Maxim",
     "url": "https://github.com/Slavenin/state_form"
