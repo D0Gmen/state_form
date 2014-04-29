@@ -292,7 +292,6 @@
 		change_state: function() {
 			return function() {
 				var $this = $(this);
-				window.console.debug($this);
 				var data = $this.data();
 				var val = $this.val();
 
