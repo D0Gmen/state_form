@@ -40,25 +40,79 @@
 
 				$(':input', $this).not('[type="button"],[type="submit"]').each(function() {
 					var $$this = $(this);
-
-					var tmp = {
-						state: {
-							element_name: null,
-							first_val: null,
-							raw_text_first: null,
-							curent_val: null,
-							raw_text_last: null,
-							selected: false
-						}
-					};
-
-					$$this.state_form('set_value', tmp, settings);
-					$$this.state_form('set_name', tmp, settings);
-					$$this.change($$this.state_form('change_state'));
-					$$this.data(tmp);
+					$this.state_form('add_field', $$this, settings);
 				});
-
 			});
+		},
+		/**
+		 * add field to controlling set
+		 * @param {string|object} field jquery selector or jquery object or html object
+		 * @param {type} settings object or undefined
+		 * @returns {undefined}
+		 */
+		add_field: function(field, settings){
+
+			var $this = $(field);
+			settings = settings || this.state_form('get_settings');
+
+			if(!settings || $this.data('state'))
+			{
+				return;
+			}
+
+			var tmp = {
+				state: {
+					element_name: null,
+					first_val: null,
+					raw_text_first: null,
+					curent_val: null,
+					raw_text_last: null,
+					selected: false
+				}
+			};
+
+			$this.state_form('set_value', tmp, settings);
+			$this.state_form('set_name', tmp, settings);
+			/**@todo какая-то магия вешать обработчик на change, что бы вызвать свой триггер,
+			 * надо подумать как от этого уйти*/
+			$this.change($this.state_form('call_change'));
+			$this.on('state_form.change', $this.state_form('change_state'));
+
+			$this.data(tmp);
+		},
+		/**
+		 * remove field from controlling set
+		 * @param {string|object} field jquery selector or jquery object or html object
+		 * @returns {undefined}
+		 */
+		remove_field: function(field){
+			var $this = $(field);
+			$this.removeData('state');
+			$this.off('state_form.change');
+			/**@todo  удалить только назначенный плагином обработчик не получается ни одним из способов
+			 * $this.off('change', '**', $this.state_form('call_change'));
+			 * $this.unbind('change', $this.state_form('call_change'));
+			 * никакого эффекта не дают поэтому пойдём тёмным путём*/
+			var ev = $._data($this[0], "events");
+			var h = $this.state_form('call_change').toString();
+			if(ev.change)
+			{
+				for(var i in ev.change)
+				{
+					if(isNaN(i))
+					{
+						continue;
+					}
+					if(ev.change[i].handler.toString() === h)
+					{
+						delete ev.change[i];
+						ev.change.length--;
+						break;
+					}
+				}
+			}
+
+			$this.removeAttr('data-state-is_changed');
 		},
 		/**
 		 * set name for field
@@ -69,6 +123,16 @@
 		set_name: function(tmp, settings) {
 			if(void 0 !== this.attr(settings.controlling_attr))
 			{
+				if(settings.debug_mode)
+				{
+					var count = $('[' + settings.controlling_attr + '="' + this.attr(settings.controlling_attr) + '"]').size();
+					if(count > 1)
+					{
+						window.console.warn('Внимание: атрибут ' + settings.controlling_attr + ' найден у более чем одного элемента');
+						window.console.debug(this);
+					}
+				}
+
 				tmp.state.element_name = this.attr(settings.controlling_attr);
 			}
 			else if(void 0 !== this.attr('id'))
@@ -216,6 +280,11 @@
 
 			return changes;
 		},
+		call_change: function(){
+			return function(){
+				$(this).trigger('state_form.change');
+			};
+		},
 		/**
 		 * call on event change control
 		 * @returns {Function}
@@ -223,6 +292,7 @@
 		change_state: function() {
 			return function() {
 				var $this = $(this);
+				window.console.debug($this);
 				var data = $this.data();
 				var val = $this.val();
 
@@ -244,6 +314,11 @@
 					{
 						data.state.raw_text_last = $this.find('option:selected').text();
 					}
+				}
+
+				if(val === null)
+				{
+					val = '';
 				}
 
 				if(val != data.state.first_val)

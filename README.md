@@ -72,4 +72,10 @@ $('form').state_form('get_history', 'key');
 
 //return last form state by context
 $('form').state_form('find_state');
+
+//add field in controlling set
+$('form').state_form('add_field', $(selector));
+
+//remove field from controlling set
+$('form').state_form('remove_field', $(selector));
 ```
