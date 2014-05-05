@@ -19,7 +19,9 @@
 				},
 				save_state_history: 1,
 				state_history_length: 10,
-				controlling_attr: 'name'
+				controlling_attr: 'name',
+				onAddField: null,
+				onChange: null
 			}, options);
 
 			this.state_form('init_state', settings);
@@ -77,8 +79,18 @@
 			 * надо подумать как от этого уйти*/
 			$this.change($this.state_form('call_change'));
 			$this.on('state_form.change', $this.state_form('change_state'));
+			if(settings.onChange)
+			{
+				//биндим контекст
+				$this.on('state_form.change', settings.onChange.bind($this));
+			}
 
 			$this.data(tmp);
+
+			if(settings.onAddField)
+			{
+				settings.onAddField($this);
+			}
 		},
 		/**
 		 * remove field from controlling set
@@ -318,6 +330,11 @@
 				if(val === null)
 				{
 					val = '';
+				}
+
+				if(data.state.first_val === null)
+				{
+					data.state.first_val = '';
 				}
 
 				if(val != data.state.first_val)

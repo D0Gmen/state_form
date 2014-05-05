@@ -36,7 +36,11 @@ $(document).ready(function() {
 		//max count history snapshots
 		state_history_length: 10,
 		//name attribute with a unique value for the control
-		controlling_attr: 'name'//is default
+		controlling_attr: 'name'//is default,
+		//call on add each elements
+		onAddField: function(field) {console.log('element add')},
+		//call on change elements
+		onChange: function(field) {console.log('element changed')}
 	});
 });
 ```
