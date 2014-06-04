@@ -37,6 +37,8 @@ $(document).ready(function() {
 		state_history_length: 10,
 		//name attribute with a unique value for the control
 		controlling_attr: 'name'//is default,
+		//selector for ignoring elements
+		ignore: null,
 		//call on add each elements
 		onAddField: function(field) {console.log('element add')},
 		//call on change elements

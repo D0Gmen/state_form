@@ -14,6 +14,7 @@
 				input_name: 'changed_state',
 				exclude: [],
 				debug_mode: 0,
+				ignore: null,
 				if_changed: function() {
 					return true;
 				},
@@ -40,7 +41,13 @@
 					settings: settings
 				});
 
-				$(':input', $this).not('[type="button"],[type="submit"]').each(function() {
+				var els = $(':input', $this).not('[type="button"],[type="submit"]');
+				if(settings.ignore)
+				{
+					els = els.not(settings.ignore);
+				}
+
+				els.each(function() {
 					var $$this = $(this);
 					$this.state_form('add_field', $$this, settings);
 				});
