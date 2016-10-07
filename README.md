@@ -21,12 +21,12 @@ with parametrs:
 $(document).ready(function() {
 	$('form').state_form({
 		//name input in form
-		inputName: 'changed_state',  //is default
+		input_name: 'changed_state',  //is default
 		//add input with changes in form
-		insertInForm: 1, //is defaul
+		insert_in_form: 1, //is defaul
 		//function before form submit
 		//call if form has changes
-		ifChanged: function() { //is default
+		if_changed: function() { //is default
 			return true;
 		},
 		//field for excluded
